@@ -1,0 +1,3 @@
+FastTTTSandbox implements tic tac toe in pythin using bitwise logic for fast game speed. FastTTTSandbox also allows for the `n_moves` keyword to set the number of actions that each side, x or o, takes per turn. The intent of n_moves is to allow for 2v2 or 3v3 tic tac toe where agents on a team take their moves simultaneously and must coordinate together so as not to play the same move.
+
+All of the code is in `__init__.py` where the environment itself is only 158 lines of code with an example running like a gymnasium env at the bottom. 
