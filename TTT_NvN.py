@@ -3,7 +3,15 @@ import sys
 
 
 class TTTNvN:
-    def __init__(self, nfirst=2, n_moves=2, render_mode="human", random_op=True):
+    def __init__(
+        self,
+        nfirst=2,
+        n_moves=2,
+        render_mode="human",
+        random_op=True,
+        obs_as_array=True,
+    ):
+        self.obs_as_array = obs_as_array
         self.n_moves = n_moves
         self.nfirst = nfirst
         self.board = np.zeros(18, dtype=np.int32)
@@ -63,23 +71,14 @@ class TTTNvN:
         return c
 
     def make_move(self, i):
-        # print(f"other pos = {(i + (1 - self.current_player) * 9)}")
-        # print(f"my pos = {(i + self.current_player * 9)}")
-        # print(f"clear: {(~self.board2 & (1 << (i + (1 - self.current_player) * 9)))>0}")
         self.board2 |= (
             (~self.board2 & (1 << (i + (1 - self.current_player) * 9))) > 0
         ) * (1 << (i + self.current_player * 9))
 
     def check_win(self, board, player):
         if player == 0:
-            # print(np.bitwise_and(board, self.wc))
-            # print(np.bitwise_and(board, self.wc) == self.wc)
-            # print(f"won: {np.sum(np.bitwise_and(board, self.wc) == self.wc) > 0}")
             return np.sum(np.bitwise_and(board, self.wc) == self.wc) > 0
         else:
-            # print(np.bitwise_and(board, self.wc2))
-            # print(np.bitwise_and(board, self.wc2) == self.wc2)
-            # print(f"won: {np.sum(np.bitwise_and(board, self.wc2) == self.wc2) > 0}")
             return np.sum(np.bitwise_and(board, self.wc2) == self.wc2) > 0
 
     def check_draw(self, board):
@@ -100,6 +99,17 @@ class TTTNvN:
                 board_str = board_str + b
             board_str += "\n"
         print(board_str)
+
+    def board_to_array(self, board):
+        return (
+            np.bitwise_and(
+                np.left_shift(
+                    np.ones(18, dtype=np.int32), np.arange(18, dtype=np.int32)
+                ),
+                board,
+            )
+            > 0
+        ).astype(np.float32)
 
     def step(self, action=0):
         win = 0
@@ -136,8 +146,12 @@ class TTTNvN:
 
         if done:
             self.needs_to_reset = True
+
+        obs = self.board2
+        if self.obs_as_array:
+            obs = self.board_to_array(self.board2)
         return (
-            self.board2,
+            obs,
             float(win) - float(op_win),
             done,
             False,
