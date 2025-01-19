@@ -32,23 +32,19 @@ class TTTNvN:
                 2**2 + 2**4 + 2**6,  # diag 2
             ]
         )
-        self.wc2 = np.bitwise_left_shift(self.wc, 9)
+        self.wc2 = np.left_shift(self.wc, 9)
         self.b1 = np.sum(
-            np.bitwise_left_shift(
-                np.ones(9, dtype=np.int32), np.arange(0, 9, dtype=np.int32)
-            )
+            np.left_shift(np.ones(9, dtype=np.int32), np.arange(0, 9, dtype=np.int32))
         )
         self.b2 = np.sum(
-            np.bitwise_left_shift(
-                np.ones(9, dtype=np.int32), np.arange(9, 18, dtype=np.int32)
-            )
+            np.left_shift(np.ones(9, dtype=np.int32), np.arange(9, 18, dtype=np.int32))
         )
 
     def random_legal_moves(self, n=1, board=0):
         x = (
             np.bitwise_and(
                 board,
-                np.bitwise_left_shift(
+                np.left_shift(
                     np.ones(9, dtype=np.int32), np.arange(0, 9, dtype=np.int32)
                 ),
             )
@@ -57,7 +53,7 @@ class TTTNvN:
         y = (
             np.bitwise_and(
                 board,
-                np.bitwise_left_shift(
+                np.left_shift(
                     np.ones(9, dtype=np.int32), np.arange(9, 18, dtype=np.int32)
                 ),
             )
@@ -88,7 +84,7 @@ class TTTNvN:
         self.needs_to_reset = False
         self.board = 0
         self.current_player = 0
-        return 0, 0
+        return self.board_to_array(0) if self.obs_as_array else 0, 0
 
     def display_board(self, board: int):
         board_str = ""
