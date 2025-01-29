@@ -7,14 +7,14 @@ class TTTNvN:
         nfirst=2,
         n_moves=2,
         render_mode="human",
-        random_op=True,
+        op_type="random",
         obs_as_array=True,
     ):
         self.obs_as_array = obs_as_array
         self.n_moves = n_moves
         self.nfirst = nfirst
         self.board = 0
-        self.random_op = random_op
+        self.op_type = op_type
         self.needs_to_reset = True
 
         self.current_player = 0
@@ -126,12 +126,21 @@ class TTTNvN:
         done = win or draw
         self.current_player = 1 - self.current_player
 
-        if self.random_op and not done:
+        if self.op_type == "random" and not done:
             m = self.random_legal_moves(self.n_moves, self.board)
             if not isinstance(m, (list, tuple, np.ndarray)):
                 m = [m]
             for i in range(self.n_moves):
                 self.board = self.make_move(m[i], self.board)
+            op_win = self.check_win(self.board, self.current_player)
+            if not op_win:
+                draw = self.check_draw(self.board)
+            self.current_player = 1 - self.current_player
+            done = op_win or draw
+
+        elif self.op_type == "human" and not done:
+            m = int(input("action 1-9: ")) - 1
+            self.board = self.make_move(m, self.board)
             op_win = self.check_win(self.board, self.current_player)
             if not op_win:
                 draw = self.check_draw(self.board)
@@ -308,26 +317,30 @@ class TTTLeverGame:
 
 
 if __name__ == "__main__":
-    n_actions = 3
-    ttenv = TTTLeverGame(n_moves=n_actions, render_mode="human", random_op=True)
+    n_actions = 1
+    ttenv = TTTNvN(n_moves=n_actions, render_mode="human", op_type="human")
     ttenv.reset()
     ttenv.current_player = 0
 
     again = "y"
-    while again == "y":
+    done = False
+    while again == "y" or not done:
         # ttenv.board2 = np.random.randint(0, 2**18 + 1, dtype=np.int32)
-        na = []
-        for i in range(n_actions):
-            na.append(int(input("action 1-9: ")))
-        m = ttenv.random_legal_move(ttenv.board)
-        obs, r, term, trunc, _ = ttenv.step(na)
+        # na = []
+        # for i in range(n_actions):
+        #    na.append(int(input("action 1-9: ")))
+        m = ttenv.random_legal_moves(n=1, board=ttenv.board)
+        obs, r, term, trunc, _ = ttenv.step(m)
         ttenv.display_board(ttenv.board)
         print(
             f"obs: {obs}, reward: {r}, terminated: {term}, truncated: {trunc}, info: {_}, act: {m}"
         )
-        if ttenv.needs_to_reset:
-            ttenv.reset()
-        again = input("try again? ")
+        done = trunc or term
+
+        if trunc or term:
+            if ttenv.needs_to_reset:
+                ttenv.reset()
+            again = input("try again? ")
     ttenv.display_board(0)
     ttenv.display_board(1)
     ttenv.display_board(2)
